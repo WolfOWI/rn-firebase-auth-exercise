@@ -1,27 +1,47 @@
-import { StyleSheet, Text, View, Button, SafeAreaView } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, Button, SafeAreaView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { logOutUser } from "../services/authService";
+import { getUserProfile, UserProfileData } from "../services/userService";
+import { useUser } from "../context/UserContext";
 
 const ProfileScreen = () => {
+  const { user } = useUser();
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
 
-    // TODO: handle logout
-    const handleLogout = () => {}
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          const profile = await getUserProfile(user.uid);
+          setUserProfile(profile);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
 
-    return (
-        <SafeAreaView>
-            <View style={{padding:20}}>
-                <Text>Profile</Text>
+  const handleLogout = async () => {
+    try {
+      await logOutUser();
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
-                {/* TODO: Show logged in user info */}
-                <Text>Email here</Text>
-                <Text>Username here</Text>
+  return (
+    <SafeAreaView>
+      <View style={{ padding: 20 }}>
+        <Text>Profile</Text>
 
-                <Button 
-                    title="Sign Out"
-                    color="green"
-                    onPress={handleLogout} />
-            </View>
-        </SafeAreaView>
-    )
-}
+        <Text>{user?.email}</Text>
+        <Text>{userProfile?.username || "No username"}</Text>
 
-export default ProfileScreen
+        <Button title="Sign Out" color="green" onPress={handleLogout} />
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default ProfileScreen;
